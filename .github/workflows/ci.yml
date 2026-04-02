@@ -1,0 +1,142 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ci.yml — Pipeline CI/CD GitHub Actions
+#
+# Déclencheur : push ou pull request sur la branche main
+#
+# Jobs (dans l'ordre) :
+#   1. test   → exécute les tests pytest
+#   2. build  → construit l'image Docker et la pousse sur GHCR
+#   3. integration-test → lance le conteneur et vérifie les endpoints
+#
+# Dépendances :
+#   build  démarre APRÈS test (si test échoue, on ne build pas)
+#   integration-test démarre APRÈS build
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Nom de l'image sur GitHub Container Registry
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/temperature-forecast
+
+jobs:
+
+  # ── Job 1 : Tests unitaires ─────────────────────────────────────────────────
+  test:
+    name: Tests unitaires
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"   # cache des dépendances pip
+
+      - name: Installation des dépendances
+        run: pip install -r requirements.txt
+
+      - name: Création des dossiers requis
+        run: mkdir -p data model/registry monitoring/output
+
+      - name: Exécution des tests pytest
+        run: pytest tests/ -v --tb=short
+
+  # ── Job 2 : Build + Push Docker ─────────────────────────────────────────────
+  build:
+    name: Build et push image Docker
+    runs-on: ubuntu-latest
+    needs: test       # ← démarre uniquement si test réussit
+
+    # Ne builder que sur push (pas sur les PR)
+    if: github.event_name == 'push'
+
+    permissions:
+      contents: read
+      packages: write   # nécessaire pour pousser sur GHCR
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Connexion à GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # GITHUB_TOKEN est automatiquement disponible (pas de secret à ajouter)
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build et push de l'image Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          # Tag : latest + SHA court du commit
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          # Injecter le commit SHA comme version logicielle
+          build-args: |
+            GIT_COMMIT_ID=${{ github.sha }}
+
+  # ── Job 3 : Tests d'intégration sur le conteneur ───────────────────────────
+  integration-test:
+    name: Tests d'intégration (Docker)
+    runs-on: ubuntu-latest
+    needs: build      # ← démarre uniquement si build réussit
+
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Connexion à GHCR pour puller l'image
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lancement du conteneur
+        run: |
+          docker run -d \
+            --name api_test \
+            -p 8000:8000 \
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          # Attendre que l'API soit prête (max 30s)
+          timeout 30 bash -c 'until curl -sf http://localhost:8000/health; do sleep 1; done'
+
+      - name: Test endpoint /health
+        run: |
+          response=$(curl -sf http://localhost:8000/health)
+          echo "Response: $response"
+          echo "$response" | grep -q '"ok"'
+
+      - name: Test endpoint /version
+        run: |
+          response=$(curl -sf http://localhost:8000/version)
+          echo "Response: $response"
+          # Vérifier que software_version = commit SHA
+          echo "$response" | grep -q "${{ github.sha }}"
+
+      - name: Test endpoint /predictions (404 attendu car pas de données)
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            "http://localhost:8000/predictions?date=2099-01-01")
+          echo "Status: $status"
+          [ "$status" = "404" ]
+
+      - name: Arrêt du conteneur
+        if: always()
+        run: docker stop api_test && docker rm api_test
