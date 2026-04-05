@@ -31,11 +31,11 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ── Layer 3 : code source ─────────────────────────────────────────────────────
-# Copié en dernier car c'est la partie qui change le plus souvent
+# Copié en dernier car c'est la partie qui change le plus souvent.
+# model/ et data/ sont intentionnellement exclus : ils sont montés en volumes
+# par docker-compose.yml (évite de gonfler l'image avec les fichiers lourds).
 COPY src/    ./src/
 COPY api/    ./api/
-COPY model/  ./model/
-COPY data/   ./data/
 
 # Variable d'environnement : version logicielle (injectée par CI/CD)
 # En local → "0.0.0" ; en CI → commit SHA via --build-arg

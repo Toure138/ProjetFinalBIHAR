@@ -1,0 +1,33 @@
+# Environnement Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Données et modèles (montés en volumes Docker)
+data/
+model/
+
+# MLflow
+mlruns/
+
+# Notebooks
+notebooks/
+
+# Monitoring output
+monitoring/
+
+# Tests
+tests/
+
+# Configs IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Fichiers temporaires
+*.db-journal
+.pytest_cache/
