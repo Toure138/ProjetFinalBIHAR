@@ -102,95 +102,9 @@ def _sp_id(shape):
     return str(shape._element.get('id') or shape.shape_id)
 
 def add_fade_animations(slide, shapes, auto=True, base_delay=300):
-    """Ajoute des animations fade-in sur les shapes (auto ou sur clic)."""
-    if not shapes:
-        return
-
-    def make_par(sp_id, click_idx, delay_ms):
-        par_xml = f'''<p:par xmlns:p="{PML}">
-  <p:cTn id="{next_id()}" fill="hold">
-    <p:stCondLst>
-      <p:cond delay="{'indefinite' if not auto and click_idx == 0 else str(delay_ms)}"/>
-    </p:stCondLst>
-    <p:childTnLst>
-      <p:par>
-        <p:cTn id="{next_id()}" fill="hold">
-          <p:stCondLst><p:cond delay="0"/></p:stCondLst>
-          <p:childTnLst>
-            <p:par>
-              <p:cTn id="{next_id()}" presetID="10" presetClass="entr" presetSubtype="0"
-                     fill="hold" grpId="0"
-                     nodeType="{'clickEffect' if not auto else 'withEffect'}">
-                <p:stCondLst><p:cond delay="0"/></p:stCondLst>
-                <p:childTnLst>
-                  <p:set>
-                    <p:cBhvr>
-                      <p:cTn id="{next_id()}" dur="1" fill="hold"/>
-                      <p:tgtEl><p:spTgt spid="{sp_id}"/></p:tgtEl>
-                      <p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst>
-                    </p:cBhvr>
-                    <p:to><p:strVal val="visible"/></p:to>
-                  </p:set>
-                  <p:animEffect transition="in" filter="fade">
-                    <p:cBhvr>
-                      <p:cTn id="{next_id()}" dur="600"/>
-                      <p:tgtEl><p:spTgt spid="{sp_id}"/></p:tgtEl>
-                    </p:cBhvr>
-                  </p:animEffect>
-                </p:childTnLst>
-              </p:cTn>
-            </p:par>
-          </p:childTnLst>
-        </p:cTn>
-      </p:par>
-    </p:childTnLst>
-  </p:cTn>
-</p:par>'''
-        return etree.fromstring(par_xml)
-
-    child_pars = []
-    for i, sh in enumerate(shapes):
-        delay = i * base_delay if auto else 0
-        child_pars.append(make_par(_sp_id(sh), i, delay))
-
-    bld_items = "".join(
-        f'<p:bldP xmlns:p="{PML}" spid="{_sp_id(sh)}" grpId="{i}"/>'
-        for i, sh in enumerate(shapes)
-    )
-
-    timing_xml = f'''<p:timing xmlns:p="{PML}">
-  <p:tnLst>
-    <p:par>
-      <p:cTn id="{next_id()}" dur="indefinite" restart="whenNotActive" nodeType="tmRoot">
-        <p:childTnLst>
-          <p:seq concurrent="1" nextAc="seek">
-            <p:cTn id="{next_id()}" dur="indefinite" nodeType="mainSeq">
-              <p:childTnLst>
-              </p:childTnLst>
-            </p:cTn>
-            <p:prevCondLst>
-              <p:cond evt="onPrevClick" delay="0"><p:tn/></p:cond>
-            </p:prevCondLst>
-          </p:seq>
-        </p:childTnLst>
-      </p:cTn>
-    </p:par>
-  </p:tnLst>
-  <p:bldLst>{bld_items}</p:bldLst>
-</p:timing>'''
-
-    timing_el = etree.fromstring(timing_xml)
-    main_seq = timing_el.find('.//' + qn('p:cTn') + '[@nodeType="mainSeq"]/' + qn('p:childTnLst'))
-    if main_seq is None:
-        main_seq = timing_el.find('.//{%s}childTnLst' % PML)
-    for par in child_pars:
-        main_seq.append(par)
-
-    # Supprimer timing existant si présent
-    sp_tree = slide._element
-    for old in sp_tree.findall(qn('p:timing')):
-        sp_tree.remove(old)
-    sp_tree.append(timing_el)
+    """Desactivee — les animations d'entree XML bloquent l'affichage dans PowerPoint.
+    Les transitions entre slides (add_transition) sont conservees a la place."""
+    pass
 
 def add_transition(slide, trans="fade"):
     xml = f'<p:transition xmlns:p="{PML}" spd="fast"><p:{trans}/></p:transition>'
