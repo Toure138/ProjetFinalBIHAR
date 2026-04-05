@@ -5,7 +5,7 @@ Génère un graphique et un tableau de métriques d'erreur,
 sauvegardés dans monitoring/output/.
 
 Usage :
-    python -m src.monitoring.report --start 2024-12-01 --end 2024-12-31
+    python -m src.monitoring.report --start 2026-12-01 --end 2024-12-31
 """
 
 import argparse
