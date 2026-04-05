@@ -18,6 +18,16 @@ WORKDIR /app
 # ── Layer 2 : dépendances (copier UNIQUEMENT requirements.txt d'abord) ────────
 # Si requirements.txt ne change pas, Docker réutilise le cache → pip plus rapide
 COPY requirements.txt .
+
+# Préinstaller torch CPU-only AVANT requirements.txt.
+# Sans cette étape, pip résout torch>=2.3.0 vers la dernière version (2.11+)
+# qui tire 2 Go de librairies CUDA inutiles dans le conteneur.
+# Comme torch==2.3.0 est déjà satisfait, requirements.txt ne le réinstalle pas.
+RUN pip install --no-cache-dir \
+    torch==2.3.0 \
+    torchvision==0.18.0 \
+    --index-url https://download.pytorch.org/whl/cpu
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ── Layer 3 : code source ─────────────────────────────────────────────────────
