@@ -11,26 +11,26 @@ build/
 data/multimodal/COMP5329S1A2Dataset/
 data/multimodal/*.zip
 data/multimodal/images/
-data/*.csv
-data/*.json
-data/*.npy
-data/*.pkl
+!data/*.csv
+!data/*.json
+!data/*.npy
+!data/*.pkl
 
 # ─── Modèles lourds (gardés dans registry) ────────────────────────────────────
-model/baseline_cnn_best.pth
-model/early_fusion_best.pth
-model/efficientnet_fe_best.pth
-model/efficientnet_ft_best.pth
-model/joint_fusion_best.pth
-model/text_bilstm_best.pth
-model/text_mlp_best.pth
-model/tft_model.ckpt
-model/lstm_model.keras
-model/scaler_minmax.pkl
-model/scaler_standard.pkl
-model/y_scaler.pkl
-model/image_model_final.pth
-model/text_model_final.pth
+!model/baseline_cnn_best.pth
+!model/early_fusion_best.pth
+!model/efficientnet_fe_best.pth
+!model/efficientnet_ft_best.pth
+!model/joint_fusion_best.pth
+!model/text_bilstm_best.pth
+!model/text_mlp_best.pth
+!model/tft_model.ckpt
+!model/lstm_model.keras
+!model/scaler_minmax.pkl
+!model/scaler_standard.pkl
+!model/y_scaler.pkl
+!model/image_model_final.pth
+!model/text_model_final.pth
 
 # ─── Garder le registre actif ─────────────────────────────────────────────────
 !model/registry/
@@ -53,6 +53,10 @@ notebooks/.ipynb_checkpoints/
 .claude/
 .zencoder/
 .zenflow/
+
+# ─── Grafana / Prometheus (volumes Docker) ────────────────────────────────────
+grafana/data/
+prometheus/data/
 
 # ─── IDE ──────────────────────────────────────────────────────────────────────
 .vscode/

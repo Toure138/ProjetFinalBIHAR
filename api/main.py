@@ -19,6 +19,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Imports internes (chemin relatif depuis la racine du projet)
 import sys
@@ -39,6 +40,9 @@ logger = get_logger(__name__)
 
 # Initialiser la BDD au démarrage
 init_db()
+
+# ─── Prometheus metrics (/metrics) ────────────────────────────────────────────
+Instrumentator().instrument(app).expose(app)
 
 
 # ─── Middleware : log de chaque requête ───────────────────────────────────────
