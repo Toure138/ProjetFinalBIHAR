@@ -2,70 +2,125 @@
   "title": "Temperature Forecast API",
   "uid": "temperature-api",
   "schemaVersion": 39,
-  "version": 1,
-  "refresh": "15s",
-  "time": { "from": "now-1h", "to": "now" },
+  "version": 2,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
   "panels": [
+
     {
-      "id": 1,
-      "title": "Requetes par seconde (RPS)",
-      "type": "timeseries",
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "rate(http_requests_total{job=\"temperature-api\"}[1m])",
-          "legendFormat": "{{method}} {{handler}} {{status}}",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "color": { "mode": "palette-classic" }
-        }
+      "id": 100,
+      "title": "MONITORING MODELE — Predictions vs Observations",
+      "type": "text",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 2 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Monitoring du modele LSTM — Comparaison predictions vs valeurs reelles (7 derniers jours)"
       }
     },
+
     {
-      "id": 2,
-      "title": "Latence des requetes (p50 / p95 / p99)",
-      "type": "timeseries",
-      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
-          "legendFormat": "p50",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
-          "legendFormat": "p95",
-          "refId": "B"
-        },
-        {
-          "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
-          "legendFormat": "p99",
-          "refId": "C"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "color": { "mode": "palette-classic" }
-        }
-      }
-    },
-    {
-      "id": 3,
-      "title": "Total requetes",
+      "id": 10,
+      "title": "MAE — Erreur absolue moyenne (°C)",
       "type": "stat",
-      "gridPos": { "x": 0, "y": 8, "w": 4, "h": 4 },
+      "gridPos": { "x": 0, "y": 2, "w": 6, "h": 4 },
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "sum(http_requests_total{job=\"temperature-api\"})",
-          "legendFormat": "Total",
+          "expr": "model_monitoring_mae",
+          "legendFormat": "MAE",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 3,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" }
+    },
+
+    {
+      "id": 11,
+      "title": "RMSE (°C)",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 2, "w": 6, "h": 4 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "model_monitoring_rmse",
+          "legendFormat": "RMSE",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 3,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1.5 },
+              { "color": "red", "value": 4 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
+    },
+
+    {
+      "id": 12,
+      "title": "Biais moyen (°C)",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 2, "w": 6, "h": 4 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "model_monitoring_bias",
+          "legendFormat": "Biais",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 3,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 2 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
+    },
+
+    {
+      "id": 13,
+      "title": "Points compares",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 2, "w": 6, "h": 4 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "model_monitoring_n_points",
+          "legendFormat": "N points",
           "refId": "A"
         }
       ],
@@ -76,136 +131,255 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "green", "value": 50 }
             ]
           }
         }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
+    },
+
+    {
+      "id": 14,
+      "title": "Predictions vs Observations — Temperature (°C)",
+      "description": "Courbes predicted (bleu) vs actual (noir). Source : GET /monitoring/data via plugin Infinity.",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 10 },
+      "datasource": "Infinity",
+      "targets": [
+        {
+          "refId": "predicted",
+          "type": "json",
+          "url": "http://api:8000/monitoring/data?days=7",
+          "root_selector": "rows",
+          "columns": [
+            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_s" },
+            { "selector": "predicted", "text": "Predicted", "type": "number" }
+          ]
+        },
+        {
+          "refId": "actual",
+          "type": "json",
+          "url": "http://api:8000/monitoring/data?days=7",
+          "root_selector": "rows",
+          "columns": [
+            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_s" },
+            { "selector": "actual", "text": "Actual", "type": "number" }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Actual" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "dark-blue", "mode": "fixed" } },
+              { "id": "custom.lineWidth", "value": 2 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Predicted" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } },
+              { "id": "custom.lineStyle", "value": { "dash": [8, 4], "fill": "dash" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
       }
     },
+
+    {
+      "id": 15,
+      "title": "Erreur (Predicted - Actual) en °C",
+      "description": "Positif = surestimation, negatif = sous-estimation.",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 7 },
+      "datasource": "Infinity",
+      "targets": [
+        {
+          "refId": "error",
+          "type": "json",
+          "url": "http://api:8000/monitoring/data?days=7",
+          "root_selector": "rows",
+          "columns": [
+            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_s" },
+            { "selector": "error", "text": "Erreur", "type": "number" }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": { "mode": "fixed", "fixedColor": "red" },
+          "custom": { "fillOpacity": 20 }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+
+    {
+      "id": 101,
+      "title": "MONITORING API — Trafic et performances",
+      "type": "text",
+      "gridPos": { "x": 0, "y": 23, "w": 24, "h": 2 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Monitoring de l'API — Trafic, latence et erreurs HTTP"
+      }
+    },
+
+    {
+      "id": 1,
+      "title": "Requetes par seconde (RPS)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 25, "w": 12, "h": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{job=\"temperature-api\"}[1m])",
+          "legendFormat": "{{method}} {{handler}} {{status}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } } }
+    },
+
+    {
+      "id": 2,
+      "title": "Latence des requetes (p50 / p95 / p99)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 25, "w": 12, "h": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
+          "legendFormat": "p50", "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
+          "legendFormat": "p95", "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
+          "legendFormat": "p99", "refId": "C"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "palette-classic" } } }
+    },
+
+    {
+      "id": 3,
+      "title": "Total requetes",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 33, "w": 4, "h": 4 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "sum(http_requests_total{job=\"temperature-api\"})", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
+    },
+
     {
       "id": 4,
       "title": "Taux d'erreurs 4xx/5xx",
       "type": "stat",
-      "gridPos": { "x": 4, "y": 8, "w": 4, "h": 4 },
+      "gridPos": { "x": 4, "y": 33, "w": 4, "h": 4 },
       "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "sum(rate(http_requests_total{job=\"temperature-api\", status=~\"[45]..\"}[5m])) / sum(rate(http_requests_total{job=\"temperature-api\"}[5m])) * 100",
-          "legendFormat": "Erreurs %",
-          "refId": "A"
-        }
-      ],
+      "targets": [{
+        "expr": "sum(rate(http_requests_total{job=\"temperature-api\", status=~\"[45]..\"}[5m])) / sum(rate(http_requests_total{job=\"temperature-api\"}[5m])) * 100",
+        "refId": "A"
+      }],
       "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 5 }
-            ]
-          }
+        "defaults": { "unit": "percent", "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }
+          ]}
         }
-      }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
     },
+
     {
       "id": 5,
       "title": "Latence moyenne",
       "type": "stat",
-      "gridPos": { "x": 8, "y": 8, "w": 4, "h": 4 },
+      "gridPos": { "x": 8, "y": 33, "w": 4, "h": 4 },
       "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "sum(rate(http_request_duration_seconds_sum{job=\"temperature-api\"}[5m])) / sum(rate(http_request_duration_seconds_count{job=\"temperature-api\"}[5m]))",
-          "legendFormat": "Latence moy.",
-          "refId": "A"
-        }
-      ],
+      "targets": [{
+        "expr": "sum(rate(http_request_duration_seconds_sum{job=\"temperature-api\"}[5m])) / sum(rate(http_request_duration_seconds_count{job=\"temperature-api\"}[5m]))",
+        "refId": "A"
+      }],
       "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.5 },
-              { "color": "red", "value": 1 }
-            ]
-          }
+        "defaults": { "unit": "s", "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 1 }
+          ]}
         }
-      }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
     },
+
     {
       "id": 6,
       "title": "API en ligne (UP)",
       "type": "stat",
-      "gridPos": { "x": 12, "y": 8, "w": 4, "h": 4 },
+      "gridPos": { "x": 12, "y": 33, "w": 4, "h": 4 },
       "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "up{job=\"temperature-api\"}",
-          "legendFormat": "Status",
-          "refId": "A"
-        }
-      ],
+      "targets": [{ "expr": "up{job=\"temperature-api\"}", "refId": "A" }],
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
-          ],
+          "mappings": [{ "type": "value", "options": {
+            "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" }
+          }}],
           "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null }, { "color": "green", "value": 1 }
+          ]}
         }
-      }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
     },
+
     {
       "id": 7,
       "title": "Requetes par endpoint",
       "type": "timeseries",
-      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "gridPos": { "x": 0, "y": 37, "w": 12, "h": 8 },
       "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "sum by (handler) (rate(http_requests_total{job=\"temperature-api\"}[1m]))",
-          "legendFormat": "{{handler}}",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "color": { "mode": "palette-classic" }
-        }
-      }
+      "targets": [{
+        "expr": "sum by (handler) (rate(http_requests_total{job=\"temperature-api\"}[1m]))",
+        "legendFormat": "{{handler}}", "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } } }
     },
+
     {
       "id": 8,
       "title": "Distribution des codes HTTP",
       "type": "timeseries",
-      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "gridPos": { "x": 12, "y": 37, "w": 12, "h": 8 },
       "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "sum by (status) (rate(http_requests_total{job=\"temperature-api\"}[1m]))",
-          "legendFormat": "HTTP {{status}}",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "color": { "mode": "palette-classic" }
-        }
-      }
+      "targets": [{
+        "expr": "sum by (status) (rate(http_requests_total{job=\"temperature-api\"}[1m]))",
+        "legendFormat": "HTTP {{status}}", "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } } }
     }
+
   ]
 }
