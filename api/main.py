@@ -18,6 +18,7 @@ Documentation auto :
 
 import asyncio
 import logging
+import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -245,6 +246,47 @@ def monitoring_refresh():
     """Force le recalcul de MAE/RMSE/biais et met à jour les jauges Prometheus."""
     logger.info("GET /monitoring/refresh")
     return _compute_and_update_gauges()
+
+
+# ─── Endpoints pipeline (déclenchés par Airflow) ─────────────────────────────
+# Airflow appelle POST /pipeline/fetch puis POST /pipeline/predict.
+# Chaque endpoint lance le subprocess correspondant et attend sa fin
+# avant de répondre → Airflow sait si la tâche a réussi ou échoué.
+
+@app.post("/pipeline/fetch", summary="Déclenche le fetch des données météo (Airflow)")
+async def pipeline_fetch():
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    logger.info("POST /pipeline/fetch — date=%s", today)
+    root = Path(__file__).resolve().parents[1]
+
+    proc = await asyncio.create_subprocess_exec(
+        sys.executable, "-m", "src.data.fetch_data", "--end", today,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=str(root),
+    )
+    stdout, stderr = await proc.communicate()
+    if proc.returncode != 0:
+        raise HTTPException(status_code=500, detail=stderr.decode()[-1000:])
+    return {"status": "ok", "date": today, "output": stdout.decode()[-500:]}
+
+
+@app.post("/pipeline/predict", summary="Déclenche la génération des prédictions (Airflow)")
+async def pipeline_predict():
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    logger.info("POST /pipeline/predict — date=%s", today)
+    root = Path(__file__).resolve().parents[1]
+
+    proc = await asyncio.create_subprocess_exec(
+        sys.executable, "-m", "src.inference.predict", "--date", today,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=str(root),
+    )
+    stdout, stderr = await proc.communicate()
+    if proc.returncode != 0:
+        raise HTTPException(status_code=500, detail=stderr.decode()[-1000:])
+    return {"status": "ok", "date": today, "output": stdout.decode()[-500:]}
 
 
 # ─── Health check ─────────────────────────────────────────────────────────────
