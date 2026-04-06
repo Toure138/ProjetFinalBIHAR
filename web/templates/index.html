@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Météo Yamoussoukro — Prévisions 3 jours</title>
+  <title>Meteo Yamoussoukro - Previsions 3 jours</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --blue-dark:   #0d2d56;
-      --blue-mid:    #1a4a8a;
-      --blue-light:  #2e72c2;
-      --accent:      #f0a500;
-      --bg:          #f0f4f9;
-      --card-bg:     #ffffff;
-      --text-main:   #1a2740;
-      --text-muted:  #6b7d9a;
-      --border:      #dce6f0;
-      --cold:        #4a9edd;
-      --mild:        #28b67a;
-      --warm:        #f0a500;
-      --hot:         #e84040;
+      --blue-dark:  #0d2d56;
+      --blue-mid:   #1a4a8a;
+      --blue-light: #2e72c2;
+      --accent:     #f0a500;
+      --bg:         #f0f4f9;
+      --card-bg:    #ffffff;
+      --text-main:  #1a2740;
+      --text-muted: #6b7d9a;
+      --border:     #dce6f0;
+      --cold:       #4a9edd;
+      --mild:       #28b67a;
+      --warm:       #f0a500;
+      --hot:        #e84040;
     }
 
     body {
@@ -30,11 +30,11 @@
       min-height: 100vh;
     }
 
-    /* ─── HEADER ─── */
+    /* ── HEADER ── */
     header {
       background: linear-gradient(90deg, var(--blue-dark) 0%, var(--blue-mid) 60%, var(--blue-light) 100%);
-      padding: 0;
     }
+
     .header-top {
       display: flex;
       align-items: center;
@@ -42,23 +42,35 @@
       padding: 14px 32px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
+
     .logo {
       display: flex;
       align-items: center;
       gap: 10px;
-      color: #fff;
       text-decoration: none;
     }
     .logo-circle {
-      width: 42px; height: 42px;
+      width: 44px;
+      height: 44px;
       background: var(--accent);
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
       flex-shrink: 0;
     }
-    .logo-text { font-size: 0.7rem; line-height: 1.2; color: rgba(255,255,255,0.85); }
-    .logo-text strong { display: block; font-size: 1rem; color: #fff; letter-spacing: 0.5px; }
+    .logo-text {
+      font-size: 0.68rem;
+      line-height: 1.3;
+      color: rgba(255,255,255,0.8);
+    }
+    .logo-text strong {
+      display: block;
+      font-size: 1rem;
+      color: #fff;
+      letter-spacing: 0.4px;
+    }
 
     .city-title {
       flex: 1;
@@ -68,18 +80,18 @@
       letter-spacing: 1px;
       text-transform: uppercase;
     }
+
     .header-meta {
-      color: rgba(255,255,255,0.65);
+      color: rgba(255,255,255,0.6);
       font-size: 0.82rem;
       text-align: right;
-      line-height: 1.5;
+      line-height: 1.6;
     }
     .header-meta strong { color: #fff; }
 
-    /* ─── DAY NAV STRIP ─── */
+    /* ── DAY NAV STRIP ── */
     .day-strip {
       display: flex;
-      gap: 0;
       overflow-x: auto;
       padding: 0 32px;
       scrollbar-width: none;
@@ -91,293 +103,305 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px 22px 0;
+      padding: 10px 24px 0;
       cursor: pointer;
       border-bottom: 3px solid transparent;
-      color: rgba(255,255,255,0.65);
+      color: rgba(255,255,255,0.6);
       transition: all 0.2s;
-      min-width: 80px;
+      min-width: 90px;
+      user-select: none;
     }
-    .day-tab:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
-    .day-tab.active { color: #fff; border-color: var(--accent); background: rgba(0,0,0,0.12); }
+    .day-tab:hover { color: #fff; border-bottom-color: rgba(255,255,255,0.35); }
+    .day-tab.active {
+      color: #fff;
+      border-bottom-color: var(--accent);
+      background: rgba(0,0,0,0.12);
+    }
+    .tab-name  { font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+    .tab-num   { font-size: 1.7rem; font-weight: 700; line-height: 1.05; }
+    .tab-icon  { font-size: 1.6rem; margin: 4px 0 3px; }
+    .tab-temps { font-size: 0.78rem; display: flex; gap: 7px; padding-bottom: 8px; }
+    .tab-max   { color: #fff; font-weight: 700; }
+    .tab-min   { color: rgba(255,255,255,0.5); }
 
-    .day-tab .tab-name  { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .day-tab .tab-num   { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
-    .day-tab .tab-icon  { font-size: 1.5rem; margin: 4px 0 2px; }
-    .day-tab .tab-temps { font-size: 0.78rem; display: flex; gap: 6px; padding-bottom: 8px; }
-    .day-tab .tab-max   { color: #fff; font-weight: 700; }
-    .day-tab .tab-min   { color: rgba(255,255,255,0.55); }
+    /* ── MAIN ── */
+    main { max-width: 1060px; margin: 0 auto; padding: 28px 20px 40px; }
 
-    /* ─── MAIN CONTENT ─── */
-    main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
-
-    /* ─── BULLETIN ─── */
+    /* ── BULLETIN ── */
     .bulletin {
       background: var(--card-bg);
-      border-radius: 12px;
       border: 1px solid var(--border);
+      border-radius: 12px;
       padding: 20px 24px;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
       display: flex;
       align-items: flex-start;
       gap: 20px;
     }
     .bulletin-icon { font-size: 2.8rem; flex-shrink: 0; margin-top: 2px; }
-    .bulletin h2 { font-size: 1.1rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .bulletin p  { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; }
+    .bulletin h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--blue-dark);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .bulletin p { font-size: 0.92rem; color: var(--text-muted); line-height: 1.65; }
 
-    /* ─── PERIOD CARDS ─── */
-    .periods-title {
-      font-size: 0.78rem;
+    /* ── SECTION TITLE ── */
+    .section-label {
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--text-muted);
       margin-bottom: 12px;
     }
+
+    /* ── PERIOD CARDS ── */
     .periods-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 14px;
-      margin-bottom: 28px;
+      margin-bottom: 26px;
     }
     .period-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 16px 14px;
+      padding: 18px 14px;
       text-align: center;
-      transition: box-shadow 0.2s;
+      transition: box-shadow 0.18s;
     }
-    .period-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
-    .period-card.active-period { border-color: var(--blue-light); box-shadow: 0 0 0 2px rgba(46,114,194,0.15); }
-    .period-name { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px; }
-    .period-icon { font-size: 2rem; margin-bottom: 8px; }
-    .period-temp { font-size: 1.8rem; font-weight: 700; }
-    .period-temp span { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
-    .period-sub  { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
-
-    .temp-cold { color: var(--cold); }
-    .temp-mild { color: var(--mild); }
-    .temp-warm { color: var(--warm); }
-    .temp-hot  { color: var(--hot); }
-
-    /* ─── HEURE PAR HEURE ─── */
-    .hourly-title {
-      font-size: 0.78rem;
+    .period-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+    .period-name {
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.6px;
       color: var(--text-muted);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
+    .period-icon  { font-size: 2rem; margin-bottom: 8px; }
+    .period-temp  { font-size: 1.9rem; font-weight: 700; }
+    .period-temp span { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
+    .period-sub   { font-size: 0.76rem; color: var(--text-muted); margin-top: 5px; }
+
+    /* temperature colours */
+    .tc-cold { color: var(--cold); }
+    .tc-mild { color: var(--mild); }
+    .tc-warm { color: var(--warm); }
+    .tc-hot  { color: var(--hot);  }
+
+    /* ── HOURLY TABLE ── */
     .hourly-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
-    .hourly-row {
+    .h-row {
       display: flex;
       align-items: center;
       padding: 11px 20px;
       border-bottom: 1px solid var(--border);
-      gap: 16px;
-      transition: background 0.15s;
+      gap: 14px;
+      transition: background 0.12s;
     }
-    .hourly-row:last-child { border-bottom: none; }
-    .hourly-row:hover { background: #f7faff; }
-    .hourly-row.night-row { background: #f5f7fb; }
+    .h-row:last-child { border-bottom: none; }
+    .h-row:hover { background: #f6f9ff; }
+    .h-row.h-night { background: #f4f6fb; }
+    .h-row.h-night:hover { background: #eef1f8; }
 
-    .h-time  { width: 54px; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); flex-shrink: 0; }
-    .h-icon  { font-size: 1.4rem; flex-shrink: 0; width: 30px; text-align: center; }
-    .h-temp  { font-size: 1.25rem; font-weight: 700; width: 70px; text-align: right; flex-shrink: 0; }
-    .h-temp-unit { font-size: 0.8rem; font-weight: 400; color: var(--text-muted); }
-    .h-bar-wrap { flex: 1; height: 6px; background: #e8eef5; border-radius: 3px; overflow: hidden; }
-    .h-bar      { height: 100%; border-radius: 3px; transition: width 0.3s; }
+    .h-time  { width: 52px; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); flex-shrink: 0; }
+    .h-icon  { font-size: 1.35rem; width: 28px; text-align: center; flex-shrink: 0; }
+    .h-temp  { font-size: 1.2rem; font-weight: 700; width: 72px; text-align: right; flex-shrink: 0; }
+    .h-unit  { font-size: 0.78rem; font-weight: 400; color: var(--text-muted); }
+    .h-bar-wrap { flex: 1; height: 5px; background: #e4eaf3; border-radius: 3px; overflow: hidden; }
+    .h-bar  { height: 100%; border-radius: 3px; }
     .bar-cold { background: var(--cold); }
     .bar-mild { background: var(--mild); }
     .bar-warm { background: var(--warm); }
     .bar-hot  { background: var(--hot);  }
+    .h-period { width: 80px; font-size: 0.76rem; color: var(--text-muted); text-align: right; flex-shrink: 0; }
 
-    .h-label { width: 80px; font-size: 0.78rem; color: var(--text-muted); text-align: right; flex-shrink: 0; }
+    /* ── DAY SECTIONS ── */
+    .day-section         { display: none; }
+    .day-section.active  { display: block; }
 
-    /* ─── HIDDEN DAYS ─── */
-    .day-section { display: none; }
-    .day-section.active { display: block; }
-
-    /* ─── ERROR ─── */
+    /* ── ERROR ── */
     .error-card {
       background: #fff5f5;
       border: 1px solid #ffd0d0;
       border-radius: 12px;
-      padding: 28px;
+      padding: 32px;
       text-align: center;
       color: #b03030;
     }
-    .error-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
-    .error-card p  { font-size: 0.88rem; color: #8a4040; }
-    .error-card code { background: #fde8e8; padding: 2px 6px; border-radius: 4px; font-size: 0.82rem; }
+    .error-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+    .error-card p  { font-size: 0.88rem; color: #8a4040; line-height: 1.6; }
+    .error-card code {
+      background: #fde8e8;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+    }
 
-    /* ─── FOOTER ─── */
+    /* ── FOOTER ── */
     footer {
       background: var(--blue-dark);
-      color: rgba(255,255,255,0.45);
+      color: rgba(255,255,255,0.4);
       text-align: center;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       padding: 16px;
-      margin-top: 20px;
       letter-spacing: 0.3px;
     }
-    footer strong { color: rgba(255,255,255,0.75); }
+    footer strong { color: rgba(255,255,255,0.7); }
 
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 760px) {
-      .header-top { padding: 12px 16px; flex-wrap: wrap; }
-      .city-title  { font-size: 1.1rem; }
-      .day-strip   { padding: 0 10px; }
-      main         { padding: 16px 12px; }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 720px) {
+      .header-top   { padding: 12px 14px; flex-wrap: wrap; }
+      .city-title   { font-size: 1.1rem; }
+      .day-strip    { padding: 0 10px; }
+      main          { padding: 16px 12px 30px; }
       .periods-grid { grid-template-columns: repeat(2, 1fr); }
-      .h-bar-wrap, .h-label { display: none; }
+      .h-bar-wrap,
+      .h-period     { display: none; }
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════ HEADER ═══════════ -->
+<!-- ════════ HEADER ════════ -->
 <header>
   <div class="header-top">
     <a class="logo" href="#">
-      <div class="logo-circle">🌦</div>
+      <div class="logo-circle">&#127746;</div>
       <div class="logo-text">
-        <span>météo</span>
+        <span>meteo</span>
         <strong>BIHAR 2026</strong>
       </div>
     </a>
-    <div class="city-title">Météo Yamoussoukro</div>
+    <div class="city-title">Meteo Yamoussoukro</div>
     <div class="header-meta">
-      Modèle <strong>LSTM PyTorch</strong><br>
-      Prévisions générées le <strong>{{ today }}</strong>
+      Modele <strong>LSTM PyTorch</strong><br>
+      Previsions generees le <strong>{{ today }}</strong>
     </div>
   </div>
 
-  <!-- Day navigation strip -->
+  <!-- Day tabs -->
   <div class="day-strip">
-    {% if days %}
-      {% for d in days %}
-      <div class="day-tab {% if loop.first %}active{% endif %}"
-           onclick="showDay({{ loop.index0 }}, this)">
-        <div class="tab-name">{{ d.day_short }}</div>
-        <div class="tab-num">{{ d.day_num }}</div>
-        <div class="tab-icon">{{ d.icon }}</div>
-        <div class="tab-temps">
-          <span class="tab-max">{{ "%.0f"|format(d.t_max) }}°</span>
-          <span class="tab-min">{{ "%.0f"|format(d.t_min) }}°</span>
-        </div>
+    {% for d in days %}
+    <div class="day-tab {% if loop.first %}active{% endif %}"
+         onclick="showDay({{ loop.index0 }}, this)">
+      <div class="tab-name">{{ d.day_short }}</div>
+      <div class="tab-num">{{ d.day_num }}</div>
+      <div class="tab-icon">{{ d.icon }}</div>
+      <div class="tab-temps">
+        <span class="tab-max">{{ "%.0f"|format(d.t_max) }}&deg;</span>
+        <span class="tab-min">{{ "%.0f"|format(d.t_min) }}&deg;</span>
       </div>
-      {% endfor %}
-    {% endif %}
+    </div>
+    {% endfor %}
   </div>
 </header>
 
-<!-- ═══════════ MAIN ═══════════ -->
+<!-- ════════ MAIN ════════ -->
 <main>
 
 {% if error_msg %}
-  <div class="error-card">
-    <h3>⚠️ Prévisions indisponibles</h3>
-    <p>{{ error_msg }}</p>
-    <p style="margin-top:12px;">
-      Générez d'abord les prévisions :<br>
-      <code>python -m src.inference.predict --date {{ today }}</code>
-    </p>
-  </div>
+<div class="error-card">
+  <h3>Previsions indisponibles</h3>
+  <p>{{ error_msg }}</p>
+  <p style="margin-top:14px;">
+    Generez d'abord les previsions :<br>
+    <code>python -m src.inference.predict --date {{ today }}</code>
+  </p>
+</div>
 
 {% else %}
 
-  {# ─── One section per day ─── #}
-  {% for d in days %}
-  <div class="day-section {% if loop.first %}active{% endif %}" id="day-{{ loop.index0 }}">
+{% for d in days %}
+<div class="day-section {% if loop.first %}active{% endif %}" id="day-{{ loop.index0 }}">
 
-    <!-- Bulletin du jour -->
-    <div class="bulletin">
-      <div class="bulletin-icon">{{ d.icon }}</div>
-      <div>
-        <h2>Météo du {{ d.day_long }} {{ d.day_num }} {{ d.month_short }}</h2>
-        <p>
-          À Yamoussoukro, les températures varieront entre
-          <strong>{{ "%.1f"|format(d.t_min) }}°C</strong> et
-          <strong>{{ "%.1f"|format(d.t_max) }}°C</strong>
-          (amplitude : {{ "%.1f"|format(d.t_amp) }}°C).
-          Température moyenne journalière : <strong>{{ "%.1f"|format(d.t_avg) }}°C</strong>.
-          Prévisions issues du modèle LSTM — horizon 72h, pas 3h.
-        </p>
-      </div>
+  <!-- Bulletin -->
+  <div class="bulletin">
+    <div class="bulletin-icon">{{ d.icon }}</div>
+    <div>
+      <h2>Meteo du {{ d.day_long }} {{ d.day_num }} {{ d.month_short }}</h2>
+      <p>
+        A Yamoussoukro, les temperatures varieront entre
+        <strong>{{ "%.1f"|format(d.t_min) }}&deg;C</strong> et
+        <strong>{{ "%.1f"|format(d.t_max) }}&deg;C</strong>
+        (amplitude : {{ "%.1f"|format(d.t_amp) }}&deg;C).
+        Temperature moyenne : <strong>{{ "%.1f"|format(d.t_avg) }}&deg;C</strong>.
+        Previsions LSTM &mdash; horizon 72h, pas 3h.
+      </p>
     </div>
-
-    <!-- Périodes du jour -->
-    <div class="periods-title">En bref — par période</div>
-    <div class="periods-grid">
-      {% for p in d.periods %}
-      <div class="period-card">
-        <div class="period-name">{{ p.name }}</div>
-        <div class="period-icon">{{ p.icon }}</div>
-        <div class="period-temp temp-{{ p.cls }}">
-          {{ "%.1f"|format(p.avg) }}<span>°C</span>
-        </div>
-        <div class="period-sub">{{ p.slots | length }} créneaux</div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Heure par heure -->
-    <div class="hourly-title">Heure par heure</div>
-    <div class="hourly-card">
-      {% for s in d.slots %}
-      <div class="hourly-row {% if s.target_time[11:13]|int < 6 or s.target_time[11:13]|int >= 20 %}night-row{% endif %}">
-        <div class="h-time">{{ s.target_time[11:16] }}</div>
-        <div class="h-icon">{{ s.icon }}</div>
-        <div class="h-temp temp-{{ s.cls }}">
-          {{ "%.1f"|format(s.predicted | float) }}<span class="h-temp-unit">°C</span>
-        </div>
-        <div class="h-bar-wrap">
-          <div class="h-bar bar-{{ s.cls }}" style="width:{{ s.bar_pct }}%;"></div>
-        </div>
-        <div class="h-label">
-          {% if s.target_time[11:13]|int < 6 %}Nuit
-          {% elif s.target_time[11:13]|int < 12 %}Matin
-          {% elif s.target_time[11:13]|int < 18 %}Après-midi
-          {% else %}Soir{% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
   </div>
-  {% endfor %}
+
+  <!-- Periods -->
+  <div class="section-label">En bref &mdash; par periode</div>
+  <div class="periods-grid">
+    {% for p in d.periods %}
+    <div class="period-card">
+      <div class="period-name">{{ p.name }}</div>
+      <div class="period-icon">{{ p.icon }}</div>
+      <div class="period-temp tc-{{ p.cls }}">
+        {{ "%.1f"|format(p.avg) }}<span>&deg;C</span>
+      </div>
+      <div class="period-sub">{{ p.slots|length }} creneau{% if p.slots|length > 1 %}x{% endif %}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Hourly -->
+  <div class="section-label">Heure par heure</div>
+  <div class="hourly-card">
+    {% for s in d.slots %}
+    <div class="h-row {% if s.is_night %}h-night{% endif %}">
+      <div class="h-time">{{ s.time_display }}</div>
+      <div class="h-icon">{{ s.icon }}</div>
+      <div class="h-temp tc-{{ s.cls }}">
+        {{ "%.1f"|format(s.predicted|float) }}<span class="h-unit">&deg;C</span>
+      </div>
+      <div class="h-bar-wrap">
+        <div class="h-bar bar-{{ s.cls }}" data-pct="{{ s.bar_pct }}"></div>
+      </div>
+      <div class="h-period">{{ s.period_label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endfor %}
 
 {% endif %}
 </main>
 
-<!-- ═══════════ FOOTER ═══════════ -->
+<!-- ════════ FOOTER ════════ -->
 <footer>
-  Données : <strong>Open-Meteo</strong> ·
-  Modèle : <strong>LSTM PyTorch</strong> ·
-  Orchestration : <strong>Apache Airflow</strong> ·
-  Monitoring : <strong>Prometheus / Grafana</strong> ·
-  Projet <strong>BIHAR 2026</strong> — ESTIA
+  Donnees : <strong>Open-Meteo</strong> &nbsp;&middot;&nbsp;
+  Modele : <strong>LSTM PyTorch</strong> &nbsp;&middot;&nbsp;
+  Orchestration : <strong>Apache Airflow</strong> &nbsp;&middot;&nbsp;
+  Monitoring : <strong>Prometheus / Grafana</strong> &nbsp;&middot;&nbsp;
+  Projet <strong>BIHAR 2026</strong> &mdash; ESTIA
 </footer>
 
 <script>
+  // Apply bar widths from data-pct attribute (avoids inline Jinja2 in style attr)
+  document.querySelectorAll('.h-bar[data-pct]').forEach(function(el) {
+    el.style.width = el.getAttribute('data-pct') + '%';
+  });
+
   function showDay(index, el) {
-    // Update tabs
-    document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.day-tab').forEach(function(t) { t.classList.remove('active'); });
     el.classList.add('active');
-    // Update sections
-    document.querySelectorAll('.day-section').forEach(s => s.classList.remove('active'));
-    const section = document.getElementById('day-' + index);
-    if (section) section.classList.add('active');
+    document.querySelectorAll('.day-section').forEach(function(s) { s.classList.remove('active'); });
+    var section = document.getElementById('day-' + index);
+    if (section) { section.classList.add('active'); }
   }
 </script>
 

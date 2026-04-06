@@ -81,8 +81,19 @@ def _group_predictions(predictions: list) -> list:
         for s in slots:
             t    = float(s["predicted"])
             hour = _get_hour(s["target_time"])
-            s["cls"]     = _temp_class(t)
-            s["icon"]    = _temp_icon(t, hour)
+            s["cls"]          = _temp_class(t)
+            s["icon"]         = _temp_icon(t, hour)
+            s["hour"]         = hour
+            s["is_night"]     = hour < 6 or hour >= 20
+            s["time_display"] = s["target_time"][11:16]
+            if hour < 6:
+                s["period_label"] = "Nuit"
+            elif hour < 12:
+                s["period_label"] = "Matin"
+            elif hour < 18:
+                s["period_label"] = "Après-midi"
+            else:
+                s["period_label"] = "Soir"
             # Bar width: 10% baseline + up to 80% proportional
             s["bar_pct"] = round(10 + (t - t_min) / span * 80)
 
