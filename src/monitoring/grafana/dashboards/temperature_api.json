@@ -23,7 +23,7 @@
       "title": "MAE — Erreur absolue moyenne (°C)",
       "type": "stat",
       "gridPos": { "x": 0, "y": 2, "w": 6, "h": 4 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "model_monitoring_mae",
@@ -54,7 +54,7 @@
       "title": "RMSE (°C)",
       "type": "stat",
       "gridPos": { "x": 6, "y": 2, "w": 6, "h": 4 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "model_monitoring_rmse",
@@ -85,7 +85,7 @@
       "title": "Biais moyen (°C)",
       "type": "stat",
       "gridPos": { "x": 12, "y": 2, "w": 6, "h": 4 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "model_monitoring_bias",
@@ -116,7 +116,7 @@
       "title": "Points compares",
       "type": "stat",
       "gridPos": { "x": 18, "y": 2, "w": 6, "h": 4 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "model_monitoring_n_points",
@@ -264,7 +264,7 @@
       "title": "Requetes par seconde (RPS)",
       "type": "timeseries",
       "gridPos": { "x": 0, "y": 25, "w": 12, "h": 8 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "rate(http_requests_total{job=\"temperature-api\"}[1m])",
@@ -280,7 +280,7 @@
       "title": "Latence des requetes (p50 / p95 / p99)",
       "type": "timeseries",
       "gridPos": { "x": 12, "y": 25, "w": 12, "h": 8 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
@@ -303,7 +303,7 @@
       "title": "Total requetes",
       "type": "stat",
       "gridPos": { "x": 0, "y": 33, "w": 4, "h": 4 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [{ "expr": "sum(http_requests_total{job=\"temperature-api\"})", "refId": "A" }],
       "fieldConfig": {
         "defaults": { "unit": "short", "color": { "mode": "thresholds" },
@@ -317,7 +317,7 @@
       "title": "Taux d'erreurs 4xx/5xx",
       "type": "stat",
       "gridPos": { "x": 4, "y": 33, "w": 4, "h": 4 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [{
         "expr": "sum(rate(http_requests_total{job=\"temperature-api\", status=~\"[45]..\"}[5m])) / sum(rate(http_requests_total{job=\"temperature-api\"}[5m])) * 100",
         "refId": "A"
@@ -337,7 +337,7 @@
       "title": "Latence moyenne",
       "type": "stat",
       "gridPos": { "x": 8, "y": 33, "w": 4, "h": 4 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [{
         "expr": "sum(rate(http_request_duration_seconds_sum{job=\"temperature-api\"}[5m])) / sum(rate(http_request_duration_seconds_count{job=\"temperature-api\"}[5m]))",
         "refId": "A"
@@ -357,7 +357,7 @@
       "title": "API en ligne (UP)",
       "type": "stat",
       "gridPos": { "x": 12, "y": 33, "w": 4, "h": 4 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [{ "expr": "up{job=\"temperature-api\"}", "refId": "A" }],
       "fieldConfig": {
         "defaults": {
@@ -378,7 +378,7 @@
       "title": "Requetes par endpoint",
       "type": "timeseries",
       "gridPos": { "x": 0, "y": 37, "w": 12, "h": 8 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [{
         "expr": "sum by (handler) (rate(http_requests_total{job=\"temperature-api\"}[1m]))",
         "legendFormat": "{{handler}}", "refId": "A"
@@ -391,7 +391,7 @@
       "title": "Distribution des codes HTTP",
       "type": "timeseries",
       "gridPos": { "x": 12, "y": 37, "w": 12, "h": 8 },
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [{
         "expr": "sum by (status) (rate(http_requests_total{job=\"temperature-api\"}[1m]))",
         "legendFormat": "HTTP {{status}}", "refId": "A"
