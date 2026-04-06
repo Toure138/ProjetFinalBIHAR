@@ -1,0 +1,1 @@
+apache-airflow-providers-http==4.10.1

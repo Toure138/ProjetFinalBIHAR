@@ -50,6 +50,7 @@ services:
     command:
       - -c
       - |
+        pip install --quiet -r /opt/airflow/dags/requirements-airflow.txt &&
         airflow db migrate &&
         airflow users create \
           --username admin --password admin \
@@ -62,6 +63,7 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: bihar2026secret
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW_CONN_TEMPERATURE_API: http://api:8000
+      _PIP_ADDITIONAL_REQUIREMENTS: "apache-airflow-providers-http==4.10.1"
     volumes:
       - ./dags:/opt/airflow/dags
     depends_on:
@@ -73,7 +75,9 @@ services:
   airflow-scheduler:
     image: apache/airflow:2.9.1
     command: scheduler
-    environment: *airflow_env
+    environment:
+      <<: *airflow_env
+      _PIP_ADDITIONAL_REQUIREMENTS: "apache-airflow-providers-http==4.10.1"
     volumes:
       - ./dags:/opt/airflow/dags
     restart: unless-stopped
@@ -89,7 +93,9 @@ services:
     command: webserver
     ports:
       - "8081:8080"
-    environment: *airflow_env
+    environment:
+      <<: *airflow_env
+      _PIP_ADDITIONAL_REQUIREMENTS: "apache-airflow-providers-http==4.10.1"
     volumes:
       - ./dags:/opt/airflow/dags
     restart: unless-stopped
