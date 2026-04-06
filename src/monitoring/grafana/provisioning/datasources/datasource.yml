@@ -16,3 +16,5 @@ datasources:
     editable: true
     jsonData:
       tlsSkipVerify: true
+      allowedHosts:
+        - "http://api:8000"

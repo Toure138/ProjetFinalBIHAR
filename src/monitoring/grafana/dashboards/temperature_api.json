@@ -155,7 +155,7 @@
           "url": "http://api:8000/monitoring/data?days=7",
           "root_selector": "rows",
           "columns": [
-            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_s" },
+            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_ms" },
             { "selector": "predicted", "text": "Predicted", "type": "number" }
           ]
         },
@@ -165,7 +165,7 @@
           "url": "http://api:8000/monitoring/data?days=7",
           "root_selector": "rows",
           "columns": [
-            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_s" },
+            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_ms" },
             { "selector": "actual", "text": "Actual", "type": "number" }
           ]
         }
@@ -212,7 +212,7 @@
           "url": "http://api:8000/monitoring/data?days=7",
           "root_selector": "rows",
           "columns": [
-            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_s" },
+            { "selector": "time_ms", "text": "time_ms", "type": "timestamp_epoch_ms" },
             { "selector": "error", "text": "Erreur", "type": "number" }
           ]
         }
