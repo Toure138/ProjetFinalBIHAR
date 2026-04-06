@@ -144,30 +144,42 @@
     {
       "id": 14,
       "title": "Predictions vs Observations — Temperature (°C)",
-      "description": "Courbes predicted (bleu) vs actual (noir). Source : GET /monitoring/data via plugin Infinity.",
+      "description": "Courbes predicted vs actual. Source : GET /monitoring/data via plugin Infinity.",
       "type": "timeseries",
       "gridPos": { "x": 0, "y": 6, "w": 24, "h": 10 },
-      "datasource": "Infinity",
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
       "targets": [
         {
           "refId": "predicted",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
           "type": "json",
+          "source": "url",
+          "format": "timeseries",
           "url": "http://api:8000/monitoring/data?days=7",
+          "url_options": { "method": "GET", "data": "" },
           "root_selector": "rows",
           "columns": [
             { "selector": "time", "text": "time", "type": "timestamp_iso" },
             { "selector": "predicted", "text": "Predicted", "type": "number" }
-          ]
+          ],
+          "filters": [],
+          "global_query_id": ""
         },
         {
           "refId": "actual",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
           "type": "json",
+          "source": "url",
+          "format": "timeseries",
           "url": "http://api:8000/monitoring/data?days=7",
+          "url_options": { "method": "GET", "data": "" },
           "root_selector": "rows",
           "columns": [
             { "selector": "time", "text": "time", "type": "timestamp_iso" },
             { "selector": "actual", "text": "Actual", "type": "number" }
-          ]
+          ],
+          "filters": [],
+          "global_query_id": ""
         }
       ],
       "fieldConfig": {
@@ -194,7 +206,7 @@
       },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "tooltip": { "mode": "multi", "sort": "none" }
       }
     },
 
@@ -204,17 +216,23 @@
       "description": "Positif = surestimation, negatif = sous-estimation.",
       "type": "timeseries",
       "gridPos": { "x": 0, "y": 16, "w": 24, "h": 7 },
-      "datasource": "Infinity",
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
       "targets": [
         {
           "refId": "error",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
           "type": "json",
+          "source": "url",
+          "format": "timeseries",
           "url": "http://api:8000/monitoring/data?days=7",
+          "url_options": { "method": "GET", "data": "" },
           "root_selector": "rows",
           "columns": [
             { "selector": "time", "text": "time", "type": "timestamp_iso" },
             { "selector": "error", "text": "Erreur", "type": "number" }
-          ]
+          ],
+          "filters": [],
+          "global_query_id": ""
         }
       ],
       "fieldConfig": {

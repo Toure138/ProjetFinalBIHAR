@@ -11,6 +11,7 @@ datasources:
   # Plugin Infinity : interroge directement l'API FastAPI pour les graphiques
   # prédictions vs réel (endpoint /monitoring/data)
   - name: Infinity
+    uid: infinity
     type: yesoreyeram-infinity-datasource
     access: proxy
     editable: true
