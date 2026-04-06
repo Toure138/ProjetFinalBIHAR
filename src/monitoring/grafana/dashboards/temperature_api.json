@@ -283,15 +283,15 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
+          "expr": "histogram_quantile(0.50, rate(http_request_duration_highr_seconds_bucket{job=\"temperature-api\"}[1m]))",
           "legendFormat": "p50", "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_highr_seconds_bucket{job=\"temperature-api\"}[1m]))",
           "legendFormat": "p95", "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"temperature-api\"}[1m]))",
+          "expr": "histogram_quantile(0.99, rate(http_request_duration_highr_seconds_bucket{job=\"temperature-api\"}[1m]))",
           "legendFormat": "p99", "refId": "C"
         }
       ],
@@ -339,7 +339,7 @@
       "gridPos": { "x": 8, "y": 33, "w": 4, "h": 4 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [{
-        "expr": "sum(rate(http_request_duration_seconds_sum{job=\"temperature-api\"}[5m])) / sum(rate(http_request_duration_seconds_count{job=\"temperature-api\"}[5m]))",
+        "expr": "sum(rate(http_request_duration_highr_seconds_sum{job=\"temperature-api\"}[5m])) / sum(rate(http_request_duration_highr_seconds_count{job=\"temperature-api\"}[5m]))",
         "refId": "A"
       }],
       "fieldConfig": {
