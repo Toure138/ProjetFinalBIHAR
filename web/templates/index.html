@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prévisions Météo — Côte d'Ivoire</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #1a6fa8 0%, #0d3d6b 100%);
+      min-height: 100vh;
+      padding: 30px 20px;
+      color: #fff;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; letter-spacing: 1px; }
+    header p  { font-size: 1rem; opacity: 0.8; margin-top: 6px; }
+    .date-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+
+    .error {
+      background: rgba(220,50,50,0.25);
+      border: 1px solid rgba(255,100,100,0.4);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ─── Grille 3 jours ─── */
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .day-card {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 16px 12px;
+      backdrop-filter: blur(6px);
+    }
+    .day-card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 12px;
+      opacity: 0.9;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 8px;
+    }
+
+    /* ─── Lignes horaires ─── */
+    .slot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 8px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      background: rgba(255,255,255,0.06);
+      transition: background 0.15s;
+    }
+    .slot:hover { background: rgba(255,255,255,0.14); }
+
+    .slot-time {
+      font-size: 0.82rem;
+      opacity: 0.75;
+      width: 48px;
+    }
+    .slot-icon { font-size: 1.2rem; }
+    .slot-temp {
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-align: right;
+    }
+    .slot-temp span {
+      font-size: 0.75rem;
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    /* couleur selon température */
+    .cold  { color: #7ec8e3; }
+    .mild  { color: #f9f871; }
+    .warm  { color: #ffaa3b; }
+    .hot   { color: #ff5e5e; }
+
+    footer {
+      text-align: center;
+      margin-top: 36px;
+      font-size: 0.78rem;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 700px) {
+      .days-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#127748; Prévisions Météo</h1>
+  <p>Côte d'Ivoire — LSTM 72h (pas 3h)</p>
+  <div class="date-badge">Générées le {{ today }}</div>
+</header>
+
+{% if error_msg %}
+  <div class="error">
+    <p>{{ error_msg }}</p>
+    <p style="margin-top:10px;font-size:0.85rem;opacity:0.7;">
+      Lancez d'abord : <code>python -m src.inference.predict --date {{ today }}</code>
+    </p>
+  </div>
+
+{% else %}
+
+{# Regrouper les 24 créneaux par jour (8 créneaux × 3h = 24h) #}
+{% set days = {} %}
+{% for p in predictions %}
+  {% set dt = p.target_time[:10] %}
+  {% if dt not in days %}
+    {% set _ = days.update({dt: []}) %}
+  {% endif %}
+  {% set _ = days[dt].append(p) %}
+{% endfor %}
+
+<div class="days-grid">
+{% for day, slots in days.items() %}
+  <div class="day-card">
+    <h2>{{ day }}</h2>
+    {% for s in slots %}
+      {% set t = s.predicted | float %}
+      {% if t < 20 %}
+        {% set cls = "cold" %}
+        {% set icon = "&#10052;" %}
+      {% elif t < 27 %}
+        {% set cls = "mild" %}
+        {% set icon = "&#9925;" %}
+      {% elif t < 33 %}
+        {% set cls = "warm" %}
+        {% set icon = "&#9728;" %}
+      {% else %}
+        {% set cls = "hot" %}
+        {% set icon = "&#128293;" %}
+      {% endif %}
+
+      <div class="slot">
+        <div class="slot-time">{{ s.target_time[11:16] }}</div>
+        <div class="slot-icon">{{ icon }}</div>
+        <div class="slot-temp {{ cls }}">
+          {{ "%.1f"|format(t) }}<span>°C</span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endfor %}
+</div>
+
+{% endif %}
+
+<footer>Données : Open-Meteo · Modèle : LSTM PyTorch · Projet BIHAR 2026</footer>
+
+</body>
+</html>

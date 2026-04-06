@@ -1,22 +1,49 @@
-version: "3.9"
-
 services:
 
-  # ── API FastAPI ──────────────────────────────────────────────────────────────
+  # ── API FastAPI ───────────────────────────────────────────────────────────────
   api:
     build: .
-    container_name: temperature-api
     ports:
       - "8000:8000"
     volumes:
       - ./data:/app/data
       - ./model:/app/model
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Interface web météo ──────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ── Scheduler — fetch + predict automatique (01:00 UTC / jour) ───────────────
+  scheduler:
+    build: .
+    command: ["python", "scheduler/run.py"]
+    volumes:
+      - ./data:/app/data
+      - ./model:/app/model
+      - ./scheduler:/app/scheduler
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
 
   # ── Prometheus ───────────────────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus:v2.52.0
-    container_name: prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -27,12 +54,12 @@ services:
       - "--storage.tsdb.retention.time=15d"
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   # ── Grafana ──────────────────────────────────────────────────────────────────
   grafana:
     image: grafana/grafana:10.4.2
-    container_name: grafana
     ports:
       - "3000:3000"
     environment:
