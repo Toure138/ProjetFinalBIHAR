@@ -229,11 +229,13 @@ def monitoring_data(
     df["target_time"] = pd.to_datetime(df["target_time"])
     df = df.sort_values("target_time")
 
-    # Convertir le timestamp en millisecondes pour Grafana
+    # ISO string pour Grafana Infinity (timestamp_iso — plus fiable que epoch_ms)
+    df["time"] = df["target_time"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Garder time_ms pour compatibilité
     df["time_ms"] = (df["target_time"].astype("int64") // 1_000_000).astype(int)
 
-    rows = df[["time_ms", "predicted", "actual", "error"]].where(
-        df[["time_ms", "predicted", "actual", "error"]].notna(), other=None
+    rows = df[["time", "time_ms", "predicted", "actual", "error"]].where(
+        df[["time", "time_ms", "predicted", "actual", "error"]].notna(), other=None
     ).to_dict("records")
 
     return {"start": start, "end": end, "rows": rows}
