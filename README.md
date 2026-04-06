@@ -75,37 +75,41 @@ EfficientNetB0                         Bi-LSTM
 
 3-day temperature forecast (72h, step 3h = 24 steps) for Côte d'Ivoire, using **LSTM (PyTorch)**.
 
+### Architecture microservices
+
+```
+Airflow (01:00 UTC)
+  └─► POST /pipeline/fetch   ──► src/data/fetch_data.py   ──► weather.db
+  └─► POST /pipeline/predict ──► src/inference/predict.py ──► weather.db
+                                                                    │
+                                               ┌────────────────────┤
+                                               ▼                    ▼
+                                        api/main.py           web/app.py
+                                   GET /predictions       GET /  (HTML)
+                                   GET /metrics      Prometheus ──► Grafana
+```
+
 ### Data flow
 
 ```
 Open-Meteo API
-     │ (hourly data)
+     │ (données horaires)
      ▼
-src/data/fetch_data.py
-     │ (aggregate 3h → SQLite)
+src/data/fetch_data.py  (agrégation 3h → SQLite)
+     │
      ▼
-data/weather.db ──────────────────────┐
-     │                                │
-     ▼                                ▼
-src/training/train.py         src/inference/predict.py
-     │ (LSTM + MLflow)               │ (batch, 24 steps)
-     ▼                               ▼
-model/registry/               data/weather.db
-  lstm_model.pth              (table: predictions)
-  scaler.pkl                          │
-  scaler_target.pkl          src/monitoring/report.py
-  lstm_config.pkl                     │
-mlruns/ (tracking)           monitoring/output/*.png
-                                      │
-                             Prometheus /metrics
-                                      │
-                             src/monitoring/prometheus/
-                             src/monitoring/grafana/
-
-         api/main.py  (FastAPI)
-  GET /predictions          GET /version
-  GET /predictions/combined GET /health
-  GET /metrics              (Prometheus scrape)
+data/weather.db
+     │                        │
+     ▼                        ▼
+src/training/train.py   src/inference/predict.py
+  (LSTM + MLflow)         (batch 24 pas)
+     │                        │
+model/registry/         data/weather.db
+  lstm_model.pth          (table: predictions)
+  scaler.pkl                   │
+  lstm_config.pkl       src/monitoring/report.py
+                              + Prometheus gauges
+                              + Grafana dashboard
 ```
 
 ### SQLite schema (`data/weather.db`)
@@ -139,7 +143,7 @@ mlruns/ (tracking)           monitoring/output/*.png
 
 ---
 
-## Installation
+## Installation (développement local)
 
 ```bash
 # 1. Clone the repo
@@ -157,7 +161,7 @@ pip install -r requirements.txt
 
 ---
 
-## Usage — Time Series Pipeline
+## Usage — Pipeline manuel (local)
 
 ### Step 1 — Download weather data
 
@@ -171,15 +175,13 @@ python -m src.data.fetch_data --start 2023-01-01 --end 2025-01-31
 python -m src.training.train --start 2023-01-01 --end 2025-01-31
 ```
 
-Saves weights + scalers in `model/registry/` and logs run to MLflow (`mlruns/`).
-
-### Step 3 — Generate predictions (batch)
+### Step 3 — Generate predictions
 
 ```bash
 python -m src.inference.predict --date 2025-01-15
 ```
 
-### Step 4 — Monitoring report
+### Step 4 — Monitoring report (CLI)
 
 ```bash
 python -m src.monitoring.report --start 2024-12-01 --end 2024-12-31
@@ -200,94 +202,94 @@ Interactive docs: http://localhost:8000/docs
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/predictions?date=YYYY-MM-DD` | GET | 24 predictions for a given date |
-| `/predictions/combined?start=...&end=...` | GET | Predictions + actuals (monitoring) |
-| `/version` | GET | Software version + model version |
-| `/health` | GET | API health check |
-| `/metrics` | GET | Prometheus metrics (auto-exposed) |
-
-```bash
-curl "http://localhost:8000/predictions?date=2025-01-15"
-curl "http://localhost:8000/predictions/combined?start=2024-12-01&end=2024-12-31"
-curl "http://localhost:8000/version"
-curl "http://localhost:8000/health"
-curl "http://localhost:8000/metrics"
-```
+| `/predictions/combined?start=...&end=...` | GET | Predictions + actuals |
+| `/monitoring/data?days=7` | GET | Raw data for Grafana (time_ms, predicted, actual, error) |
+| `/monitoring/refresh` | GET | Force Prometheus gauge recalculation |
+| `/pipeline/fetch` | POST | Trigger fetch_data (called by Airflow) |
+| `/pipeline/predict` | POST | Trigger predict (called by Airflow) |
+| `/version` | GET | Software + model version |
+| `/health` | GET | Health check |
+| `/metrics` | GET | Prometheus metrics |
 
 ---
 
-## Monitoring — Prometheus + Grafana
-
-The full observability stack is defined in `docker-compose.yml`.
+## Stack complète — Docker Compose
 
 ```bash
-docker compose up --build
+docker compose down && docker compose up --build
 ```
 
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| API FastAPI | http://localhost:8000 | — |
-| Prometheus | http://localhost:9090 | — |
-| Grafana | http://localhost:3000 | admin / admin |
+| Service | URL | Identifiants | Rôle |
+|---------|-----|-------------|------|
+| **Web météo** | http://localhost:8080 | — | Interface 3 jours (HTML) |
+| **Airflow UI** | http://localhost:8081 | admin / admin | Orchestration DAG |
+| API FastAPI | http://localhost:8000 | — | REST + Prometheus |
+| Grafana | http://localhost:3000 | admin / admin | Dashboard monitoring |
+| Prometheus | http://localhost:9090 | — | Métriques |
 
-The Grafana dashboard **Temperature Forecast API** is provisioned automatically and displays:
-
-- Requests per second (RPS) by endpoint
-- Latency percentiles p50 / p95 / p99
-- Error rate 4xx/5xx (with colour thresholds)
-- API UP/DOWN status
-- HTTP status code distribution
-
-Configuration files:
+### Services Docker
 
 ```
-src/monitoring/
-├── report.py                              # predictions vs actuals chart
-├── prometheus/
-│   └── prometheus.yml                     # scrape config (15s interval)
-└── grafana/
-    ├── dashboards/temperature_api.json    # pre-built dashboard
-    └── provisioning/
-        ├── datasources/datasource.yml
-        └── dashboards/dashboard.yml
+api            ← FastAPI (LSTM, SQLite, métriques)
+web            ← Interface météo HTML (Dockerfile léger)
+airflow-webserver  ← UI Airflow
+airflow-scheduler  ← Exécution des DAGs
+postgres       ← Base de métadonnées Airflow
+prometheus     ← Scrape /metrics toutes les 15s
+grafana        ← Dashboard auto-provisionné
 ```
+
+### Automatisation Airflow
+
+Le DAG `weather_forecast_pipeline` s'exécute chaque jour à **01:00 UTC** :
+
+```
+fetch_data  →  predict
+  (POST /pipeline/fetch)   (POST /pipeline/predict)
+```
+
+- Gestion des retries (2 tentatives, délai 5 min)
+- Logs visibles dans l'UI Airflow
+- Déclenchement manuel possible via le bouton ▶ dans l'UI
+
+---
+
+## Monitoring — Grafana
+
+Le dashboard **Temperature Forecast API** est provisionné automatiquement.
+
+**Section Monitoring modèle :**
+- MAE / RMSE / Biais (jauges colorées vert/jaune/rouge)
+- Courbe Predicted vs Actual (orange pointillé vs bleu)
+- Courbe Erreur (Predicted − Actual)
+- Rafraîchissement automatique toutes les heures
+
+**Section Monitoring API :**
+- Requêtes/seconde par endpoint
+- Latence p50 / p95 / p99
+- Taux d'erreurs 4xx/5xx
+- Status UP/DOWN
 
 ---
 
 ## Tests
 
 ```bash
-# Run all tests
 pytest tests/ -v
-
-# With coverage report
 pytest tests/ -v --cov=src --cov=api --cov-report=term-missing
 ```
 
-Tests use a temporary SQLite database (full isolation — no impact on `data/weather.db`).
-
 ---
 
-## Docker
+## Docker (image API seule)
 
 ```bash
-# Build
 docker build -t temperature-forecast .
-
-# Build with commit ID (as in CI/CD)
-docker build --build-arg GIT_COMMIT_ID=$(git rev-parse --short HEAD) \
-  -t temperature-forecast .
-
-# Run (API only)
 docker run -p 8000:8000 \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/model:/app/model \
   temperature-forecast
-
-# Run full stack (API + Prometheus + Grafana)
-docker compose up --build
 ```
-
-**Layer optimisation**: `requirements.txt` is copied and installed before source code, so the pip layer is cached and not reinstalled when only the code changes.
 
 ---
 
@@ -295,19 +297,10 @@ docker compose up --build
 
 ```
 git push
-   └─► [test] ──────► [build & push GHCR] ──────► [integration-test]
-       pytest              docker build                /health
-       tests/ -v           push ghcr.io                /version
-                           tag: SHA                    /predictions (404)
+   └─► [test] ──► [build & push GHCR] ──► [integration-test]
+       pytest        docker build             /health /version
+                     push ghcr.io             /predictions (404)
 ```
-
-| Job | Description | Depends on |
-|-----|-------------|------------|
-| `test` | `pytest tests/ -v` | — |
-| `build` | Build image + push to `ghcr.io` with SHA tag | `test` |
-| `integration-test` | Start container, test `/health`, `/version`, `/predictions` | `build` |
-
-No secrets in plain text: `GITHUB_TOKEN` is used automatically for GHCR authentication.
 
 ---
 
@@ -316,45 +309,50 @@ No secrets in plain text: `GITHUB_TOKEN` is used automatically for GHCR authenti
 ```
 Projet_final/
 ├── notebooks/
-│   ├── exploration_multimodale.ipynb    # EDA multimodal
-│   ├── classification_images.ipynb      # CNN multi-label
-│   ├── classification_textes.ipynb      # NLP multi-label (Bi-LSTM)
-│   ├── fusion_multimodale.ipynb         # Early + Joint fusion
-│   ├── model_lstm_prophete_serie_temporelle.ipynb  # LSTM/Prophet baseline
-│   └── model_tft_serie_temporelle.ipynb            # TFT (comparaison)
+│   ├── exploration_multimodale.ipynb
+│   ├── classification_images.ipynb
+│   ├── classification_textes.ipynb
+│   ├── fusion_multimodale.ipynb
+│   ├── model_lstm_prophete_serie_temporelle.ipynb
+│   └── model_tft_serie_temporelle.ipynb
 ├── api/
-│   └── main.py              # FastAPI — 5 endpoints + Prometheus /metrics
+│   └── main.py              # FastAPI — REST + Prometheus + pipeline triggers
+├── web/
+│   ├── Dockerfile           # Image légère (sans torch)
+│   ├── app.py               # Interface météo HTML (port 8080)
+│   └── templates/index.html # Page prévisions 3 jours
+├── dags/
+│   └── weather_forecast_dag.py  # DAG Airflow (fetch >> predict, 01:00 UTC)
 ├── src/
 │   ├── common/
-│   │   ├── config.py        # Centralised parameters
-│   │   ├── database.py      # SQLite CRUD helpers
-│   │   └── logger.py        # Structured logging
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   └── logger.py
 │   ├── data/
-│   │   └── fetch_data.py    # Open-Meteo download + 3h aggregation
+│   │   └── fetch_data.py
 │   ├── training/
-│   │   └── train.py         # LSTM training pipeline + MLflow
+│   │   └── train.py
 │   ├── inference/
-│   │   └── predict.py       # Batch inference + SQLite save
+│   │   └── predict.py
 │   └── monitoring/
-│       ├── report.py        # Predictions vs actuals chart (PNG)
-│       ├── prometheus/
-│       │   └── prometheus.yml
+│       ├── report.py
+│       ├── prometheus/prometheus.yml
 │       └── grafana/
 │           ├── dashboards/temperature_api.json
 │           └── provisioning/
 ├── tests/
-│   └── test_api.py          # 7 unit + integration tests
+│   └── test_api.py
 ├── data/
-│   ├── weather.db           # SQLite (weather_data + predictions)
-│   └── multimodal/          # Kaggle dataset (images + CSVs)
+│   ├── weather.db
+│   └── multimodal/
 ├── model/
-│   └── registry/            # Active model files (LSTM weights + scalers)
+│   └── registry/            # lstm_model.pth + scalers
 ├── monitoring/
-│   └── output/              # Generated plots (PNG)
-├── mlruns/                  # MLflow experiment tracking
+│   └── output/              # PNG reports (CLI)
+├── mlruns/
 ├── .github/
-│   └── workflows/ci.yml     # GitHub Actions CI/CD
-├── docker-compose.yml       # API + Prometheus + Grafana
-├── Dockerfile
+│   └── workflows/ci.yml
+├── docker-compose.yml       # 7 microservices
+├── Dockerfile               # Image API principale
 └── requirements.txt
 ```
