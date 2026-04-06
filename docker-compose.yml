@@ -50,7 +50,6 @@ services:
     command:
       - -c
       - |
-        pip install --quiet -r /opt/airflow/dags/requirements-airflow.txt &&
         airflow db migrate &&
         airflow users create \
           --username admin --password admin \
