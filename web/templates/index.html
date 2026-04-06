@@ -295,7 +295,8 @@
   <div class="day-strip">
     {% for d in days %}
     <div class="day-tab {% if loop.first %}active{% endif %}"
-         onclick="showDay({{ loop.index0 }}, this)">
+         data-index="{{ loop.index0 }}"
+         onclick="showDay(this)">
       <div class="tab-name">{{ d.day_short }}</div>
       <div class="tab-num">{{ d.day_num }}</div>
       <div class="tab-icon">{{ d.icon }}</div>
@@ -396,7 +397,8 @@
     el.style.width = el.getAttribute('data-pct') + '%';
   });
 
-  function showDay(index, el) {
+  function showDay(el) {
+    var index = el.getAttribute('data-index');
     document.querySelectorAll('.day-tab').forEach(function(t) { t.classList.remove('active'); });
     el.classList.add('active');
     document.querySelectorAll('.day-section').forEach(function(s) { s.classList.remove('active'); });
